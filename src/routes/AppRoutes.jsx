@@ -7,9 +7,8 @@ import { Routes, Route } from "react-router-dom";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import Users from "../pages/admin/Users";
 import Products from "../pages/admin/Products";
-// import Orders from "../pages/admin/Orders";
-// import Messages from "../pages/admin/Messages";
-import Settings from "../pages/admin/Settings";
+import Orders from "../pages/admin/Orders";
+import Messages from "../pages/admin/Messages";
 import AdminLayout from "../pages/admin/AdminLayout";
 
 // Import Public Pages
@@ -73,9 +72,8 @@ export default function AppRoutes() {
 				<Route path="dashboard" element={<AdminDashboard />} />
 				<Route path="users" element={<Users />} />
 				<Route path="products" element={<Products />} />
-				{/* <Route path="orders" element={<Orders />} /> */}
-				{/* <Route path="messages" element={<Messages />} /> */}
-				<Route path="settings" element={<Settings />} />
+				<Route path="orders" element={<Orders />} />
+				<Route path="messages" element={<Messages />} />
 			</Route>
 
 			{/* ===== Seller Protected Routes ===== */}

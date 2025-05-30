@@ -17,5 +17,4 @@ export const adminLinks = [
 		path: "/admin/messages",
 		icon: ChatBubbleLeftEllipsisIcon,
 	},
-	{ label: "Settings", path: "/admin/settings", icon: CogIcon },
 ];
