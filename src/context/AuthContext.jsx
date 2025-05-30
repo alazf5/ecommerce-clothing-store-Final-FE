@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { useNavigate } from 'react-router-dom';
 import initialBuyersData from '../data/buyers.json'; // Predefined buyer users
 import initialSellersData from '../data/sellers.json'; // Predefined seller users
+import initialAdminsData from '../data/admins.json'; // Predefined admin users
 
 const AuthContext = createContext(null);
 
@@ -26,6 +27,25 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true); 
   const navigate = useNavigate();
 
+  // const getAllUsers = useCallback(() => {
+  //   let customUsers = [];
+  //   try {
+  //     const customUsersString = localStorage.getItem(CUSTOM_USERS_STORAGE_KEY);
+  //     if (customUsersString) {
+  //       customUsers = JSON.parse(customUsersString);
+  //     }
+  //   } catch (error) {
+  //     console.error("AuthContext: Error parsing custom users from localStorage", error);
+  //   }
+  //   const all = [...customUsers];
+  //   [...initialBuyersData, ...initialSellersData].forEach(staticUser => {
+  //       if (!all.find(u => u.email === staticUser.email)) {
+  //           all.push(staticUser);
+  //       }
+  //   });
+  //   return all;
+  // }, []);
+
   const getAllUsers = useCallback(() => {
     let customUsers = [];
     try {
@@ -37,7 +57,7 @@ export const AuthProvider = ({ children }) => {
       console.error("AuthContext: Error parsing custom users from localStorage", error);
     }
     const all = [...customUsers];
-    [...initialBuyersData, ...initialSellersData].forEach(staticUser => {
+    [...initialBuyersData, ...initialSellersData, ...initialAdminsData].forEach(staticUser => {
         if (!all.find(u => u.email === staticUser.email)) {
             all.push(staticUser);
         }

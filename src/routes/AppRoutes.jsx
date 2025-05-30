@@ -3,6 +3,15 @@
 // src/routes/AppRoutes.jsx
 import { Routes, Route } from "react-router-dom";
 
+// Import Admin Pages
+import AdminDashboard from "../pages/admin/AdminDashboard";
+import Users from "../pages/admin/Users";
+import Products from "../pages/admin/Products";
+// import Orders from "../pages/admin/Orders";
+// import Messages from "../pages/admin/Messages";
+import Settings from "../pages/admin/Settings";
+import AdminLayout from "../pages/admin/AdminLayout";
+
 // Import Public Pages
 import Home from "../pages/Home";
 import ProductList from "../pages/ProductList";
@@ -24,11 +33,15 @@ import BuyerDashboard from "../pages/buyer/BuyerDashboard";
 import BuyerOrders from "../pages/buyer/BuyerOrders";
 import BuyerMessages from "../pages/buyer/BuyerMessages";
 import BuyerProfile from "../pages/buyer/BuyerProfile";
-import BuyerFavoritesPage from "../pages/buyer/BuyerFavorites.jsx"; 
+import BuyerFavoritesPage from "../pages/buyer/BuyerFavorites.jsx";
 
 // Protected Route Components
-import ProtectedRoute from "../components/ProtectedRoute";      // For Sellers
-import BuyerProtectedRoute from "../components/BuyerProtectedRoute";  // For Buyers
+import ProtectedRoute from "../components/ProtectedRoute"; // For Sellers
+import BuyerProtectedRoute from "../components/BuyerProtectedRoute"; // For Buyers
+import AdminProtectedRoute from "../components/AdminProtectedRoute"; // For Admins
+
+// Admin Page
+// import AdminDashboard from "../pages/admin/AdminDashboard";
 
 /* 
   AppRoutes Component
@@ -36,74 +49,121 @@ import BuyerProtectedRoute from "../components/BuyerProtectedRoute";  // For Buy
   - Protected routes are wrapped properly
 */
 export default function AppRoutes() {
-  return (
-    <Routes>
+	return (
+		<Routes>
+			{/* ===== Public Routes ===== */}
+			<Route path="/" element={<Home />} />
+			<Route path="/products" element={<ProductList />} />
+			<Route path="/products/:id" element={<ProductDetails />} />
+			<Route path="/cart" element={<Cart />} />
+			<Route path="/about" element={<About />} />
+			<Route path="/contact" element={<Contact />} />
+			<Route path="/admin_dashboard" element={<AdminDashboard />} />
 
-      {/* ===== Public Routes ===== */}
-      <Route path="/" element={<Home />} />
-      <Route path="/products" element={<ProductList />} />
-      <Route path="/products/:id" element={<ProductDetails />} />
-      <Route path="/cart" element={<Cart />} />
-      <Route path="/about" element={<About />} />
-      <Route path="/contact" element={<Contact />} />
+			{/* Admin Routes - Nested under AdminLayout */}
+			<Route
+				path="/admin"
+				element={
+					<AdminProtectedRoute>
+						<AdminLayout />
+					</AdminProtectedRoute>
+				}
+			>
+				<Route index element={<AdminDashboard />} />
+				<Route path="dashboard" element={<AdminDashboard />} />
+				<Route path="users" element={<Users />} />
+				<Route path="products" element={<Products />} />
+				{/* <Route path="orders" element={<Orders />} /> */}
+				{/* <Route path="messages" element={<Messages />} /> */}
+				<Route path="settings" element={<Settings />} />
+			</Route>
 
-      {/* ===== Seller Protected Routes ===== */}
-      <Route path="/seller/dashboard" element={
-        <ProtectedRoute>
-          <SellerDashboard />
-        </ProtectedRoute>
-      } />
-      <Route path="/seller/products" element={
-        <ProtectedRoute>
-          <SellerProducts />
-        </ProtectedRoute>
-      } />
-      <Route path="/seller/messages" element={
-        <ProtectedRoute>
-          <SellerMessages />
-        </ProtectedRoute>
-      } />
-      <Route path="/seller/add-product" element={
-        <ProtectedRoute>
-          <AddProduct />
-        </ProtectedRoute>
-      } />
-      <Route path="/seller/edit-product/:id" element={
-        <ProtectedRoute>
-          <EditProduct />
-        </ProtectedRoute>
-      } />
+			{/* ===== Seller Protected Routes ===== */}
+			<Route
+				path="/seller/dashboard"
+				element={
+					<ProtectedRoute>
+						<SellerDashboard />
+					</ProtectedRoute>
+				}
+			/>
+			<Route
+				path="/seller/products"
+				element={
+					<ProtectedRoute>
+						<SellerProducts />
+					</ProtectedRoute>
+				}
+			/>
+			<Route
+				path="/seller/messages"
+				element={
+					<ProtectedRoute>
+						<SellerMessages />
+					</ProtectedRoute>
+				}
+			/>
+			<Route
+				path="/seller/add-product"
+				element={
+					<ProtectedRoute>
+						<AddProduct />
+					</ProtectedRoute>
+				}
+			/>
+			<Route
+				path="/seller/edit-product/:id"
+				element={
+					<ProtectedRoute>
+						<EditProduct />
+					</ProtectedRoute>
+				}
+			/>
 
-      {/* ===== Buyer Protected Routes ===== */}
-      <Route path="/buyer/dashboard" element={
-        <BuyerProtectedRoute>
-          <BuyerDashboard />
-        </BuyerProtectedRoute>
-      } />
-      <Route path="/buyer/orders" element={
-        <BuyerProtectedRoute>
-          <BuyerOrders />
-        </BuyerProtectedRoute>
-      } />
-      <Route path="/buyer/messages" element={
-        <BuyerProtectedRoute>
-          <BuyerMessages />
-        </BuyerProtectedRoute>
-      } />
-      <Route path="/buyer/profile" element={
-        <BuyerProtectedRoute>
-          <BuyerProfile />
-        </BuyerProtectedRoute>
-      } />
-      <Route path="/buyer/favorites" element={
-        <BuyerProtectedRoute>
-          <BuyerFavoritesPage />
-        </BuyerProtectedRoute>
-      } />
+			{/* ===== Buyer Protected Routes ===== */}
+			<Route
+				path="/buyer/dashboard"
+				element={
+					<BuyerProtectedRoute>
+						<BuyerDashboard />
+					</BuyerProtectedRoute>
+				}
+			/>
+			<Route
+				path="/buyer/orders"
+				element={
+					<BuyerProtectedRoute>
+						<BuyerOrders />
+					</BuyerProtectedRoute>
+				}
+			/>
+			<Route
+				path="/buyer/messages"
+				element={
+					<BuyerProtectedRoute>
+						<BuyerMessages />
+					</BuyerProtectedRoute>
+				}
+			/>
+			<Route
+				path="/buyer/profile"
+				element={
+					<BuyerProtectedRoute>
+						<BuyerProfile />
+					</BuyerProtectedRoute>
+				}
+			/>
+			<Route
+				path="/buyer/favorites"
+				element={
+					<BuyerProtectedRoute>
+						<BuyerFavoritesPage />
+					</BuyerProtectedRoute>
+				}
+			/>
 
-      {/* ===== Catch All Route (404) ===== */}
-      <Route path="*" element={<NotFound />} />
-
-    </Routes>
-  );
+			{/* ===== Catch All Route (404) ===== */}
+			<Route path="*" element={<NotFound />} />
+		</Routes>
+	);
 }
