@@ -1,35 +1,62 @@
 // src/pages/admin/Products.jsx
 import { useEffect, useState } from "react";
-// import { useAuthContext } from '../../context/AuthContext'; // <--- REMOVE THIS LINE IF YOU'RE NOT USING IT FOR PRODUCTS
-import { getAllProducts } from "../../api/adminService"; // This is the correct import!
+import { getAllProducts } from "../../api/adminService";
 
 const Products = () => {
-	// If you removed useAuthContext completely because it's not needed for products,
-	// then you don't need the line below either.
-	// const { getAllProducts } = useAuthContext(); // <--- REMOVE THIS LINE AS WELL
-
 	const [products, setProducts] = useState([]);
 	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState(null); // Added for error handling
+	const [error, setError] = useState(null);
 
 	useEffect(() => {
 		const loadProducts = async () => {
+			console.log("Products: Starting loadProducts...");
 			try {
-				setLoading(true); // Set loading to true before the API call
-				setError(null); // Clear any previous errors
+				setLoading(true);
+				setError(null);
 
-				// Call the imported getAllProducts function
-				const allProducts = await getAllProducts(); // Use the imported function directly
-				setProducts(allProducts);
+				const response = await getAllProducts(); // Get the full response object
+				console.log("Products: Full API Response:", response); // Log the full response to see its structure
+
+				// --- THIS IS THE CRUCIAL CHANGE ---
+				// Check if response has a 'content' property and it's an array
+				if (response && Array.isArray(response.content)) {
+					setProducts(response.content); // Set products to the 'content' array
+					console.log(
+						"Products: Fetched products (from content):",
+						response.content
+					);
+				} else {
+					// Handle cases where 'content' is missing or not an array (e.g., unexpected API response)
+					setProducts([]);
+					console.warn(
+						"Products: API response did not contain an array in 'content'. Response:",
+						response
+					);
+				}
+				// --- END OF CRUCIAL CHANGE ---
 			} catch (err) {
-				console.error("Failed to fetch products:", err);
-				setError("Failed to load products. Please try again."); // More user-friendly message
+				console.error("Products: Failed to fetch products:", err);
+				// Ensure error message is meaningful, e.g., if err.response exists
+				setError(
+					err.response?.data?.message ||
+						"Failed to load products. Please try again."
+				);
 			} finally {
-				setLoading(false); // Set loading to false after the API call, regardless of success or failure
+				setLoading(false);
+				console.log("Products: Finished loadProducts. Loading set to false.");
 			}
 		};
 		loadProducts();
-	}, []); // Empty dependency array means this effect runs once after the initial render
+	}, []);
+
+	console.log(
+		"Products: Component re-rendered. Loading:",
+		loading,
+		"Error:",
+		error,
+		"Products count:",
+		products.length
+	);
 
 	return (
 		<div className="container mx-auto p-6">
@@ -71,16 +98,10 @@ const Products = () => {
 									<td className="py-3 px-6 whitespace-nowrap">{product.id}</td>
 									<td className="py-3 px-6">{product.name}</td>
 									<td className="py-3 px-6">${product.price.toFixed(2)}</td>
-									<td className="py-3 px-6">
-										{product.category || "N/A"}
-									</td>{" "}
-									{/* Added fallback for category */}
+									<td className="py-3 px-6">{product.category || "N/A"}</td>
 									<td className="py-3 px-6">{product.stock}</td>
 									<td className="py-3 px-6 text-center">
 										<div className="flex items-center justify-center space-x-2">
-											{" "}
-											{/* Improved spacing */}
-											{/* Edit Button with SVG Icon */}
 											<button className="text-blue-500 hover:text-blue-700 transition duration-300 transform hover:scale-110">
 												<svg
 													className="w-5 h-5"
@@ -96,7 +117,6 @@ const Products = () => {
 													/>
 												</svg>
 											</button>
-											{/* Delete Button with SVG Icon */}
 											<button className="text-red-500 hover:text-red-700 transition duration-300 transform hover:scale-110">
 												<svg
 													className="w-5 h-5"

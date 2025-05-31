@@ -1,14 +1,35 @@
 import axios from 'axios';
-// import { API_BASE_URL } from '../config'; // Assuming you still use this or directly define API_URL
 
 const API_URL = 'http://localhost:8080/api'; // Ensure this matches your backend URL
 
+// --- IMPORTANT: Define the AUTH_TOKEN_KEY here to match your AuthContext ---
+const AUTH_TOKEN_KEY = "appAuthToken"; // <--- This must match the key in AuthContext.js
+
 // Create an Axios instance with default configuration for reusability
-// This is a best practice if many of your requests need the same config
 const axiosInstance = axios.create({
   baseURL: API_URL, // Set base URL once
-  withCredentials: true, // <-- CRITICAL: Include cookies with cross-origin requests
+  withCredentials: true, // Keep this if your backend also uses cookies for sessions, but JWT is primary for auth
 });
+
+// --- CRITICAL ADDITION: Axios Request Interceptor ---
+// This interceptor will automatically add the Authorization header to every request
+axiosInstance.interceptors.request.use(
+  (config) => {
+    // Get the token from localStorage using the correct key
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+
+    // If a token exists, add it to the Authorization header
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+// --- END OF CRITICAL ADDITION ---
+
 
 export async function getAllUsers() {
   try {
@@ -42,7 +63,7 @@ export async function getAllOrders() {
 
 export async function getAllAdminMessages() {
   try {
-    const response = await axiosInstance.get('/AdminMessages'); // Check capitalization if your backend uses 'adminMessages'
+    const response = await axiosInstance.get('/AdminMessages');
     return response.data;
   } catch (error) {
     console.error("Error fetching all admin messages:", error);
@@ -50,14 +71,20 @@ export async function getAllAdminMessages() {
   }
 }
 
-// Example login function (if you have one in services)
-// This will also need withCredentials: true
+// Note: The loginUser function is typically handled in AuthContext.js,
+// but if you have it here for some reason, ensure it also saves the token
+// to localStorage using the correct AUTH_TOKEN_KEY.
+/*
 export async function loginUser(email, password) {
   try {
     const response = await axiosInstance.post('/users/login', { email, password });
+    if (response.data.token) {
+      localStorage.setItem(AUTH_TOKEN_KEY, response.data.token); // Use AUTH_TOKEN_KEY here
+    }
     return response.data;
   } catch (error) {
     console.error("Login failed:", error);
     throw error;
   }
 }
+*/
