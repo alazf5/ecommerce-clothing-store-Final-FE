@@ -32,7 +32,7 @@ export default function BuyerProfile() {
 
   // Pre-fill form when currentUser data is available
   useEffect(() => {
-    if (currentUser && userRole === 'Buyer') {
+    if (currentUser && userRole === 'BUYER') {
       setFormData({
         firstName: currentUser.firstName || '',
         lastName: currentUser.lastName || '',
@@ -67,7 +67,7 @@ export default function BuyerProfile() {
       toast.error("Please correct the form errors.");
       return;
     }
-    if (!currentUser || userRole !== 'Buyer') {
+    if (!currentUser || userRole !== 'BUYER') {
         toast.error("You must be signed in as a Buyer to update your profile.");
         return;
     }
@@ -108,7 +108,7 @@ export default function BuyerProfile() {
 
   // Handle case where user is not a Buyer or not authenticated
   // (ProtectedRoute should also catch this, but good for robustness)
-  if (!isAuthenticated || userRole !== 'Buyer' || !currentUser) {
+  if (!isAuthenticated || userRole !== 'BUYER' || !currentUser) {
     return (
       <div className="flex min-h-screen bg-gray-100">
         <Sidebar links={buyerLinks} userRole="Buyer" />

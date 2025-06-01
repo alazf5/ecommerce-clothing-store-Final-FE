@@ -99,7 +99,7 @@ export default function BuyerMessages() {
   }, [currentUser]);
 
   const loadConversations = useCallback((callback) => {
-    if (!currentUser || userRole !== 'Buyer') {
+    if (!currentUser || userRole !== 'BUYER') {
       setConversations([]);
       setIsLoadingMessages(false);
       if (callback) callback();
@@ -198,7 +198,7 @@ export default function BuyerMessages() {
     );
   }
 
-  if (!isAuthenticated || userRole !== 'Buyer') {
+  if (!isAuthenticated || userRole !== 'BUYER') {
      return (
       <div className="flex h-screen bg-gray-100">
         <Sidebar links={buyerLinks} userRole="Buyer" />

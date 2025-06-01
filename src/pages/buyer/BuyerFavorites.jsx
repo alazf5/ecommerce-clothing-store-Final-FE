@@ -41,7 +41,7 @@ export default function BuyerFavoritesPage() {
     }
 
     setIsLoadingPage(true); // Start processing favorites
-    if (isAuthenticated && currentUser && userRole === 'Buyer' && allProducts && favoriteIds) {
+    if (isAuthenticated && currentUser && userRole === 'BUYER' && allProducts && favoriteIds) {
       const likedProducts = allProducts.filter(product => favoriteIds.has(String(product.id)));
       setFavoriteProducts(likedProducts);
     } else {
@@ -64,7 +64,7 @@ export default function BuyerFavoritesPage() {
   }
 
   // If not authenticated as a Buyer (ProtectedRoute should also handle this, but good as a fallback)
-  if (!isAuthenticated || userRole !== 'Buyer') {
+  if (!isAuthenticated || userRole !== 'BUYER') {
     return (
         <div className="flex min-h-screen bg-gray-100">
             <Sidebar links={buyerLinks} userRole="Buyer" /> {/* Basic sidebar */}

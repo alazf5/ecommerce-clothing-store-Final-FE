@@ -3,30 +3,54 @@ import { getAllOrders, updateOrderStatus } from "../../api/adminService"; // Ass
 import { toast } from "react-hot-toast";
 
 const Orders = () => {
-	const [orders, setOrders] = useState([]);
+	const [orders, setOrders] = useState([]); // Initialize as an empty array
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
-	const [filterStatus, setFilterStatus] = useState("All"); // New state for filtering
-	const [searchTerm, setSearchTerm] = useState(""); // New state for search
+	const [filterStatus, setFilterStatus] = useState("All");
+	const [searchTerm, setSearchTerm] = useState("");
 
 	useEffect(() => {
 		const loadOrders = async () => {
 			try {
 				setLoading(true);
 				setError(null);
-				const allOrders = await getAllOrders();
-				setOrders(allOrders);
+				const response = await getAllOrders(); // Assuming getAllOrders returns the axios response object
+
+				// Ensure the data from the backend is an array.
+				// Axios typically puts the actual response data in `response.data`.
+				const allOrdersData = response;
+
+				if (Array.isArray(allOrdersData)) {
+					setOrders(allOrdersData);
+				} else {
+					// Log the unexpected data and set an error
+					console.error(
+						"Backend returned unexpected data format for orders:",
+						allOrdersData
+					);
+					setError(
+						"Failed to load orders: Server returned invalid data format."
+					);
+					setOrders([]); // Ensure `orders` remains an array
+				}
+				
 			} catch (err) {
 				console.error("Failed to fetch orders:", err);
-				setError("Failed to load orders. Please try again.");
+				// More informative error message for the user
+				setError(
+					`Failed to load orders: ${
+						err.message || "Network error"
+					}. Please try again.`
+				);
 				toast.error("Failed to load orders.");
+				setOrders([]); // Ensure `orders` is reset to an empty array on error
 			} finally {
 				setLoading(false);
 			}
 		};
 
 		loadOrders();
-	}, []);
+	}, []); // Empty dependency array means this runs once on component mount
 
 	// Function to handle updating order status
 	const handleStatusChange = async (orderId, newStatus) => {
@@ -42,11 +66,16 @@ const Orders = () => {
 		} catch (err) {
 			console.error(`Failed to update order ${orderId} status:`, err);
 			toast.error(`Failed to update order ${orderId} status.`);
-			// Revert UI on error
+			// Revert UI on error - use `prevOrders` to find the original status
 			setOrders((prevOrders) =>
 				prevOrders.map((order) =>
 					order.id === orderId
-						? { ...order, status: orders.find((o) => o.id === orderId).status }
+						? {
+								...order,
+								status:
+									prevOrders.find((o) => o.id === orderId)?.status ||
+									order.status,
+						  } // Fallback to current if not found
 						: order
 				)
 			);
@@ -69,9 +98,12 @@ const Orders = () => {
 		) {
 			try {
 				// Assuming you have a deleteOrder function in your adminService
-				// await deleteOrder(orderId);
+				// await deleteOrder(orderId); // Uncomment and implement this!
 				toast.success("Order deleted successfully!");
-				setOrders(orders.filter((order) => order.id !== orderId));
+				// Filter out the deleted order from the current state
+				setOrders((prevOrders) =>
+					prevOrders.filter((order) => order.id !== orderId)
+				);
 			} catch (err) {
 				console.error("Failed to delete order:", err);
 				toast.error("Failed to delete order.");
@@ -79,13 +111,24 @@ const Orders = () => {
 		}
 	};
 
-	// Filtered and searched orders
+	// Filtered and searched orders logic.
+	// This will now always run on an array because `orders` is guaranteed to be an array.
 	const filteredOrders = orders.filter((order) => {
+		// You'll likely need to adjust 'customerName' or 'status' to match your actual Order entity structure.
+		// Based on Order.java, you might have 'user.username' or similar.
+		const customerIdentifier =
+			order.user?.username || order.user?.id?.toString() || ""; // Adapt this based on your actual OrderResponseDto
+
 		const matchesStatus =
-			filterStatus === "All" || order.status === filterStatus;
+			filterStatus === "All" || order.status === filterStatus; // Ensure 'order.status' exists and matches your backend statuses
+
 		const matchesSearch =
-			order.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			order.id.toString().includes(searchTerm.toLowerCase());
+			customerIdentifier.toLowerCase().includes(searchTerm.toLowerCase()) ||
+			order.id.toString().includes(searchTerm.toLowerCase()) ||
+			order.product?.productName
+				?.toLowerCase()
+				.includes(searchTerm.toLowerCase()); // Add product name search if applicable
+
 		return matchesStatus && matchesSearch;
 	});
 
@@ -111,10 +154,10 @@ const Orders = () => {
 					>
 						<option value="All">All Statuses</option>
 						<option value="Pending">Pending</option>
+						<option value="Processing">Processing</option>{" "}
+						{/* Added for consistency */}
 						<option value="Completed">Completed</option>
 						<option value="Cancelled">Cancelled</option>
-						<option value="Processing">Processing</option>{" "}
-						{/* Example additional status */}
 					</select>
 				</div>
 			</div>
@@ -136,6 +179,10 @@ const Orders = () => {
 							<tr>
 								<th className="py-3 px-6 text-left">Order ID</th>
 								<th className="py-3 px-6 text-left">Customer</th>
+								<th className="py-3 px-6 text-left">Product</th>{" "}
+								{/* Added Product Column */}
+								<th className="py-3 px-6 text-left">Quantity</th>{" "}
+								{/* Added Quantity Column */}
 								<th className="py-3 px-6 text-left">Total</th>
 								<th className="py-3 px-6 text-left">Status</th>
 								<th className="py-3 px-6 text-left">Date</th>
@@ -149,14 +196,20 @@ const Orders = () => {
 									className="border-b border-gray-200 hover:bg-gray-100"
 								>
 									<td className="py-3 px-6 whitespace-nowrap">{order.id}</td>
-									<td className="py-3 px-6">{order.customerName || "N/A"}</td>
+									{/* Updated to show user's ID or username, based on OrderResponseDto */}
+									<td className="py-3 px-6">
+										{order.userId || "N/A"}
+										{/* If you have user's name in OrderResponseDto, use it here */}
+									</td>
+									<td className="py-3 px-6">{order.productName || "N/A"}</td>
+									<td className="py-3 px-6">{order.quantity}</td>
 									<td className="py-3 px-6">
 										${order.total ? order.total.toFixed(2) : "0.00"}
 									</td>
 									<td className="py-3 px-6">
 										<select
 											className={`px-3 py-1 font-semibold leading-tight rounded-full ${
-												order.status === "Completed"
+												order.status === "Completed" // Assuming 'status' field exists in OrderResponseDto
 													? "bg-green-200 text-green-800"
 													: order.status === "Pending"
 													? "bg-yellow-200 text-yellow-800"
@@ -164,7 +217,7 @@ const Orders = () => {
 													? "bg-red-200 text-red-800"
 													: "bg-gray-200 text-gray-800"
 											}`}
-											value={order.status}
+											value={order.status || "Pending"} // Default to 'Pending' if status is missing
 											onChange={(e) =>
 												handleStatusChange(order.id, e.target.value)
 											}

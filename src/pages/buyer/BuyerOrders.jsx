@@ -1,6 +1,6 @@
 // List of buyer orders
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar';
 import { useAuthContext } from '../../context/AuthContext';
@@ -31,7 +31,7 @@ export default function BuyerOrders() {
     }
 
     // Proceed only if authenticated as a Buyer
-    if (isAuthenticated && currentUser && userRole === 'Buyer') {
+    if (isAuthenticated && currentUser && userRole === 'BUYER') {
       setIsLoadingOrders(true);
       try {
         const allOrdersString = localStorage.getItem("orders");
@@ -74,7 +74,7 @@ export default function BuyerOrders() {
   }
 
   // Fallback if user is not a buyer (ProtectedRoute should also handle this)
-  if (!isAuthenticated || userRole !== 'Buyer') {
+  if (!isAuthenticated || userRole !== 'BUYER') {
      return (
       <div className="flex min-h-screen bg-gray-100">
         <Sidebar links={buyerLinks} userRole="Buyer" /> {/* Basic sidebar */}
