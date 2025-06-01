@@ -47,7 +47,7 @@ export default function SellerProducts() {
     }
 
     setIsLoadingPage(true); // Start processing
-    if (isAuthenticated && currentUser && userRole === 'Seller' && allProducts) {
+    if (isAuthenticated && currentUser && userRole === 'SELLER' && allProducts) {
       const filtered = allProducts.filter(p => String(p.sellerId) === String(currentUser.id));
       setSellerProducts(filtered);
     } else {
@@ -58,7 +58,7 @@ export default function SellerProducts() {
 
 
   const handleDelete = (productId, productName) => {
-    if (!currentUser || userRole !== 'Seller') {
+    if (!currentUser || userRole !== 'SELLER') {
         toast.error("Only authenticated sellers can delete products.");
         return;
     }
@@ -139,7 +139,7 @@ export default function SellerProducts() {
   }
 
   // Fallback if user is not a seller (ProtectedRoute should also handle this)
-  if (!isAuthenticated || userRole !== 'Seller' || !currentUser) {
+  if (!isAuthenticated || userRole !== 'SELLER' || !currentUser) {
      return (
       <div className="flex min-h-screen bg-gray-100">
         <Sidebar links={sellerLinks} userRole="Seller" /> {/* Basic sidebar */}

@@ -1,34 +1,58 @@
-// src/pages/admin/Orders.jsx (or wherever you keep your Orders component)
 import { useEffect, useState } from "react";
-import { getAllOrders } from "../../api/adminService"; // Assuming your service file is at this path, adjust if needed
-import { toast } from "react-hot-toast"; // Import react-hot-toast
+import { getAllOrders, updateOrderStatus } from "../../api/adminService"; // Assuming you'll add updateOrderStatus to your service
+import { toast } from "react-hot-toast";
 
 const Orders = () => {
 	const [orders, setOrders] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
+	const [filterStatus, setFilterStatus] = useState("All"); // New state for filtering
+	const [searchTerm, setSearchTerm] = useState(""); // New state for search
 
 	useEffect(() => {
 		const loadOrders = async () => {
 			try {
-				setLoading(true); // Indicate loading state
-				setError(null); // Clear any previous errors
-
-				const allOrders = await getAllOrders(); // Call your service function
+				setLoading(true);
+				setError(null);
+				const allOrders = await getAllOrders();
 				setOrders(allOrders);
 			} catch (err) {
 				console.error("Failed to fetch orders:", err);
 				setError("Failed to load orders. Please try again.");
-				toast.error("Failed to load orders."); // Show a toast notification on error
+				toast.error("Failed to load orders.");
 			} finally {
-				setLoading(false); // End loading state
+				setLoading(false);
 			}
 		};
 
 		loadOrders();
-	}, []); // Empty dependency array means this runs once on component mount
+	}, []);
 
-	// Optional: Function to handle viewing/editing an order (example)
+	// Function to handle updating order status
+	const handleStatusChange = async (orderId, newStatus) => {
+		try {
+			// Optimistically update UI
+			setOrders((prevOrders) =>
+				prevOrders.map((order) =>
+					order.id === orderId ? { ...order, status: newStatus } : order
+				)
+			);
+			await updateOrderStatus(orderId, newStatus); // Call your service function
+			toast.success(`Order ${orderId} status updated to ${newStatus}`);
+		} catch (err) {
+			console.error(`Failed to update order ${orderId} status:`, err);
+			toast.error(`Failed to update order ${orderId} status.`);
+			// Revert UI on error
+			setOrders((prevOrders) =>
+				prevOrders.map((order) =>
+					order.id === orderId
+						? { ...order, status: orders.find((o) => o.id === orderId).status }
+						: order
+				)
+			);
+		}
+	};
+
 	const handleViewOrder = (orderId) => {
 		toast("Viewing order ID: " + orderId, {
 			icon: "👁️",
@@ -37,7 +61,6 @@ const Orders = () => {
 		// navigate(`/admin/orders/${orderId}`);
 	};
 
-	// Optional: Function to handle deleting an order (requires backend API)
 	const handleDeleteOrder = async (orderId) => {
 		if (
 			window.confirm(
@@ -45,10 +68,9 @@ const Orders = () => {
 			)
 		) {
 			try {
-				// You would need a deleteOrder function in your adminService
-				// await deleteOrder(orderId); // Call your service function
+				// Assuming you have a deleteOrder function in your adminService
+				// await deleteOrder(orderId);
 				toast.success("Order deleted successfully!");
-				// Update the state to remove the deleted order from the UI
 				setOrders(orders.filter((order) => order.id !== orderId));
 			} catch (err) {
 				console.error("Failed to delete order:", err);
@@ -57,15 +79,44 @@ const Orders = () => {
 		}
 	};
 
+	// Filtered and searched orders
+	const filteredOrders = orders.filter((order) => {
+		const matchesStatus =
+			filterStatus === "All" || order.status === filterStatus;
+		const matchesSearch =
+			order.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+			order.id.toString().includes(searchTerm.toLowerCase());
+		return matchesStatus && matchesSearch;
+	});
+
 	return (
 		<div className="container mx-auto p-6">
 			<div className="flex justify-between items-center mb-6">
 				<h1 className="text-3xl font-bold text-gray-800">Customer Orders</h1>
-				{/* You might add a "Add New Order" button here if relevant,
-                    or a "Filter Orders" button etc. */}
-				{/* <button className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded shadow-lg transition duration-300 ease-in-out">
-                    Add New Order
-                </button> */}
+				<div className="flex space-x-4">
+					{/* Search Input */}
+					<input
+						type="text"
+						placeholder="Search orders..."
+						className="p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+						value={searchTerm}
+						onChange={(e) => setSearchTerm(e.target.value)}
+					/>
+
+					{/* Status Filter Dropdown */}
+					<select
+						className="p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+						value={filterStatus}
+						onChange={(e) => setFilterStatus(e.target.value)}
+					>
+						<option value="All">All Statuses</option>
+						<option value="Pending">Pending</option>
+						<option value="Completed">Completed</option>
+						<option value="Cancelled">Cancelled</option>
+						<option value="Processing">Processing</option>{" "}
+						{/* Example additional status */}
+					</select>
+				</div>
 			</div>
 
 			{loading ? (
@@ -74,8 +125,10 @@ const Orders = () => {
 				<div className="text-center py-4 text-red-500 font-semibold">
 					{error}
 				</div>
-			) : orders.length === 0 ? (
-				<div className="text-center py-4 text-gray-600">No orders found.</div>
+			) : filteredOrders.length === 0 ? (
+				<div className="text-center py-4 text-gray-600">
+					No orders found matching your criteria.
+				</div>
 			) : (
 				<div className="overflow-x-auto bg-white shadow-md rounded-lg">
 					<table className="min-w-full leading-normal">
@@ -90,7 +143,7 @@ const Orders = () => {
 							</tr>
 						</thead>
 						<tbody className="text-gray-700 text-sm">
-							{orders.map((order) => (
+							{filteredOrders.map((order) => (
 								<tr
 									key={order.id}
 									className="border-b border-gray-200 hover:bg-gray-100"
@@ -101,7 +154,7 @@ const Orders = () => {
 										${order.total ? order.total.toFixed(2) : "0.00"}
 									</td>
 									<td className="py-3 px-6">
-										<span
+										<select
 											className={`px-3 py-1 font-semibold leading-tight rounded-full ${
 												order.status === "Completed"
 													? "bg-green-200 text-green-800"
@@ -111,9 +164,16 @@ const Orders = () => {
 													? "bg-red-200 text-red-800"
 													: "bg-gray-200 text-gray-800"
 											}`}
+											value={order.status}
+											onChange={(e) =>
+												handleStatusChange(order.id, e.target.value)
+											}
 										>
-											{order.status}
-										</span>
+											<option value="Pending">Pending</option>
+											<option value="Processing">Processing</option>
+											<option value="Completed">Completed</option>
+											<option value="Cancelled">Cancelled</option>
+										</select>
 									</td>
 									<td className="py-3 px-6">
 										{order.date
