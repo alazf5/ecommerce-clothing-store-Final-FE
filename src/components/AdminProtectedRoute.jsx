@@ -21,7 +21,7 @@ export default function AdminProtectedRoute({ children }) {
 		console.log(
 			"AdminProtectedRoute: Not authenticated. Redirecting to /login."
 		);
-		return <Navigate to="/login" state={{ from: location }} replace />;
+		return <Navigate to="/" state={{ from: location }} replace />;
 	}
 
 	// --- THE FIX IS HERE ---
@@ -33,7 +33,7 @@ export default function AdminProtectedRoute({ children }) {
 			"Expected: ADMIN"
 		);
 		console.log("AdminProtectedRoute: Redirecting to /unauthorized.");
-		return <Navigate to="/unauthorized" replace />;
+		return <Navigate to="/" replace />;
 	}
 
 	console.log(
